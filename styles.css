@@ -42,6 +42,7 @@ body {
 .nav-links {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .nav-btn {
@@ -51,6 +52,7 @@ body {
     cursor: pointer;
     border-radius: var(--border-radius);
     transition: background-color 0.3s;
+    white-space: nowrap;
 }
 
 .nav-btn:hover {
@@ -174,13 +176,14 @@ textarea {
     }
 
     .nav-links {
+        flex-direction: column;
         width: 100%;
-        justify-content: space-between;
     }
 
     .nav-btn {
-        padding: 6px 12px;
-        font-size: 0.9rem;
+        width: 100%;
+        text-align: left;
+        padding: 10px 15px;
     }
 
     .dashboard-grid {
@@ -682,4 +685,42 @@ textarea {
     background-color: #cce5ff;
     color: #004085;
     border: 1px solid #b8daff;
+}
+
+.daily-macros {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.daily-macros h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.macros-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    text-align: center;
+}
+
+.macro-item {
+    background-color: white;
+    padding: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.macro-item .value {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.macro-item .label {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
 } 

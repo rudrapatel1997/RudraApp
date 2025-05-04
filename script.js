@@ -126,13 +126,13 @@ class DataManager {
         
         const ingredient = {
             name: formData.name,
-            calories: Number(formData.calories) || 0,
-            protein: Number(formData.protein) || 0,
-            carbs: Number(formData.carbs) || 0,
-            fat: Number(formData.fat) || 0,
-            sugar: Number(formData.sugar) || 0,
-            fiber: Number(formData.fiber) || 0,
-            servingSize: Number(formData.servingSize) || 0,
+            calories: parseFloat(formData.calories).toFixed(2),
+            protein: parseFloat(formData.protein).toFixed(2),
+            carbs: parseFloat(formData.carbs).toFixed(2),
+            fat: parseFloat(formData.fat).toFixed(2),
+            sugar: parseFloat(formData.sugar).toFixed(2),
+            fiber: parseFloat(formData.fiber).toFixed(2),
+            servingSize: parseFloat(formData.servingSize).toFixed(2),
             servingUnit: formData.servingUnit,
             timestamp: new Date().toISOString()
         };
@@ -200,24 +200,41 @@ class DataManager {
         let totalProtein = 0;
         let totalCarbs = 0;
         let totalFat = 0;
+        let totalSugar = 0;
+        let totalFiber = 0;
+
+        console.log('Calculating nutrition for ingredients:', ingredients);
 
         ingredients.forEach(item => {
             const ingredient = this.ingredients.find(i => i.id === item.id);
             if (ingredient) {
-                const ratio = item.amount / ingredient.servingSize;
+                console.log('Found ingredient:', ingredient);
+                console.log('Using quantity:', item.quantity);
+                const ratio = item.quantity / ingredient.servingSize;
+                console.log('Ratio:', ratio);
+                
                 totalCalories += ingredient.calories * ratio;
                 totalProtein += ingredient.protein * ratio;
                 totalCarbs += ingredient.carbs * ratio;
                 totalFat += ingredient.fat * ratio;
+                totalSugar += ingredient.sugar * ratio;
+                totalFiber += ingredient.fiber * ratio;
+            } else {
+                console.warn('Ingredient not found for ID:', item.id);
             }
         });
 
-        return {
+        const nutrition = {
             calories: Math.round(totalCalories),
             protein: Math.round(totalProtein * 10) / 10,
             carbs: Math.round(totalCarbs * 10) / 10,
-            fat: Math.round(totalFat * 10) / 10
+            fat: Math.round(totalFat * 10) / 10,
+            sugar: Math.round(totalSugar * 10) / 10,
+            fiber: Math.round(totalFiber * 10) / 10
         };
+
+        console.log('Calculated nutrition:', nutrition);
+        return nutrition;
     }
 }
 
@@ -255,15 +272,36 @@ class UIManager {
         document.getElementById('add-recipe').addEventListener('click', () => this.switchSection('recipes'));
 
         // Form Submissions
-        document.getElementById('workout-form').addEventListener('submit', (e) => this.handleWorkoutSubmit(e));
-        document.getElementById('nutrition-form').addEventListener('submit', (e) => this.handleNutritionSubmit(e));
-        document.getElementById('measurements-form').addEventListener('submit', (e) => this.handleMeasurementSubmit(e));
-        document.getElementById('ingredients-form').addEventListener('submit', (e) => this.handleIngredientSubmit(e));
-        document.getElementById('recipes-form').addEventListener('submit', (e) => this.handleRecipeSubmit(e));
+        const workoutForm = document.getElementById('workout-form');
+        if (workoutForm) {
+            workoutForm.addEventListener('submit', (e) => this.handleWorkoutSubmit(e));
+        }
+
+        const nutritionForm = document.getElementById('nutrition-form');
+        if (nutritionForm) {
+            nutritionForm.addEventListener('submit', (e) => this.handleNutritionSubmit(e));
+        }
+
+        const measurementsForm = document.getElementById('measurements-form');
+        if (measurementsForm) {
+            measurementsForm.addEventListener('submit', (e) => this.handleMeasurementSubmit(e));
+        }
+
+        const ingredientsForm = document.getElementById('ingredients-form');
+        if (ingredientsForm) {
+            ingredientsForm.addEventListener('submit', (e) => this.handleIngredientSubmit(e));
+        }
+
+        const recipesForm = document.getElementById('recipes-form');
+        if (recipesForm) {
+            recipesForm.addEventListener('submit', (e) => this.handleRecipeSubmit(e));
+        }
 
         // Recipe Ingredients
-        document.getElementById('add-ingredient-to-recipe').addEventListener('click', () => this.addIngredientToRecipe());
-        document.getElementById('ingredient-search').addEventListener('input', (e) => this.handleIngredientSearch(e));
+        const addIngredientBtn = document.getElementById('add-ingredient-to-recipe');
+        if (addIngredientBtn) {
+            addIngredientBtn.addEventListener('click', () => this.addIngredientToRecipe());
+        }
 
         // Import/Export functionality
         const exportButton = document.getElementById('export-ingredients');
@@ -271,37 +309,30 @@ class UIManager {
         const importLabel = document.querySelector('label[for="import-ingredients"]');
         
         if (exportButton) {
-            console.log('Export button found, adding event listener');
-            exportButton.addEventListener('click', () => {
-                console.log('Export button clicked');
-                this.exportIngredientsToCSV();
-            });
-        } else {
-            console.error('Export button not found!');
+            exportButton.addEventListener('click', () => this.exportIngredientsToCSV());
         }
 
         if (importInput) {
-            console.log('Import input found, adding event listener');
-            importInput.addEventListener('change', (event) => {
-                console.log('Import file selected');
-                this.importIngredientsFromCSV(event);
-            });
-        } else {
-            console.error('Import input not found!');
+            importInput.addEventListener('change', (event) => this.importIngredientsFromCSV(event));
         }
 
         if (importLabel) {
-            console.log('Import label found');
-            importLabel.addEventListener('click', () => {
-                console.log('Import label clicked');
-                importInput.click();
-            });
-        } else {
-            console.error('Import label not found!');
+            importLabel.addEventListener('click', () => importInput.click());
         }
 
         // Initialize the current section
         this.restoreLastSection();
+
+        // Recipe selection
+        const recipeSelect = document.getElementById('recipe-select');
+        if (recipeSelect) {
+            recipeSelect.addEventListener('change', (e) => {
+                const selectedOption = e.target.options[e.target.selectedIndex];
+                if (selectedOption.value) {
+                    document.getElementById('calories').value = selectedOption.dataset.calories;
+                }
+            });
+        }
     }
 
     async refreshSection(sectionId) {
@@ -314,7 +345,7 @@ class UIManager {
             icon.classList.add('fa-spin');
             
             // Refresh data
-            await this.dataManager.refreshData();
+            await this.refreshData();
             
             // Update the specific section
             this.updateSection(sectionId);
@@ -369,6 +400,7 @@ class UIManager {
                 break;
             case 'nutrition':
                 this.updateMealList();
+                this.updateRecipeSelect();
                 break;
             case 'measurements':
                 this.updateMeasurementsList();
@@ -415,17 +447,106 @@ class UIManager {
         const mealList = document.getElementById('meal-list');
         const meals = this.dataManager.meals.sort((a, b) => new Date(b.date) - new Date(a.date));
         
+        // Calculate daily macros
+        const today = new Date().toISOString().split('T')[0];
+        const todayMeals = meals.filter(meal => meal.date.startsWith(today));
+        
+        let totalProtein = 0;
+        let totalCarbs = 0;
+        let totalFat = 0;
+        let totalCalories = 0;
+
+        todayMeals.forEach(meal => {
+            if (meal.recipeId) {
+                const recipe = this.dataManager.recipes.find(r => r.id === meal.recipeId);
+                if (recipe) {
+                    totalProtein += recipe.nutrition.protein || 0;
+                    totalCarbs += recipe.nutrition.carbs || 0;
+                    totalFat += recipe.nutrition.fat || 0;
+                    totalCalories += recipe.nutrition.calories || 0;
+                }
+            }
+        });
+
+        // Update the daily macros summary
+        const macrosSummary = document.getElementById('daily-macros-summary');
+        if (macrosSummary) {
+            macrosSummary.innerHTML = `
+                <div class="macros-grid">
+                    <div class="macro-item">
+                        <div class="value">${totalCalories}</div>
+                        <div class="label">Calories</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="value">${totalProtein.toFixed(1)}g</div>
+                        <div class="label">Protein</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="value">${totalCarbs.toFixed(1)}g</div>
+                        <div class="label">Carbs</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="value">${totalFat.toFixed(1)}g</div>
+                        <div class="label">Fat</div>
+                    </div>
+                </div>
+            `;
+        }
+        
         mealList.innerHTML = meals.map(meal => `
             <div class="list-item">
                 <div>
-                    <strong>${meal.type}</strong> - ${meal.calories} calories
+                    <strong>${meal.type}</strong>
+                    ${meal.recipeName ? ` - ${meal.recipeName}` : ''}
+                    ${meal.calories ? ` - ${meal.calories} calories` : ''}
+                    ${meal.timestamp ? ` (${meal.timestamp})` : ''}
                     ${meal.notes ? `<br><small>${meal.notes}</small>` : ''}
                 </div>
-                <button class="delete-btn" onclick="uiManager.dataManager.deleteItem('meals', ${meal.id})">
+                <button class="delete-btn" onclick="uiManager.dataManager.deleteItem('meals', '${meal.id}')">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
         `).join('');
+    }
+
+    updateRecipeSelect() {
+        const recipeSelect = document.getElementById('recipe-select');
+        if (!recipeSelect) {
+            console.error('Recipe select element not found');
+            return;
+        }
+
+        // Sort recipes alphabetically
+        const sortedRecipes = [...this.dataManager.recipes].sort((a, b) => 
+            a.name.localeCompare(b.name)
+        );
+
+        console.log('Updating recipe select with recipes:', sortedRecipes);
+
+        recipeSelect.innerHTML = '<option value="">Select a recipe</option>' +
+            sortedRecipes.map(recipe => 
+                `<option value="${recipe.id}" data-calories="${recipe.nutrition.calories}">${recipe.name}</option>`
+            ).join('');
+    }
+
+    handleNutritionSubmit(e) {
+        e.preventDefault();
+        const recipeSelect = document.getElementById('recipe-select');
+        const selectedRecipe = recipeSelect.options[recipeSelect.selectedIndex];
+        
+        const meal = {
+            type: document.getElementById('meal-type').value,
+            recipeId: selectedRecipe.value,
+            recipeName: selectedRecipe.value ? selectedRecipe.text : null,
+            calories: parseInt(document.getElementById('calories').value),
+            notes: document.getElementById('meal-notes').value,
+            date: new Date().toISOString(),
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        
+        this.dataManager.saveMeal(meal);
+        e.target.reset();
+        this.updateMealList();
     }
 
     updateMeasurementsList() {
@@ -456,18 +577,6 @@ class UIManager {
         this.updateWorkoutList();
     }
 
-    handleNutritionSubmit(e) {
-        e.preventDefault();
-        const meal = {
-            type: document.getElementById('meal-type').value,
-            calories: parseInt(document.getElementById('calories').value),
-            notes: document.getElementById('meal-notes').value
-        };
-        this.dataManager.saveMeal(meal);
-        e.target.reset();
-        this.updateMealList();
-    }
-
     handleMeasurementSubmit(e) {
         e.preventDefault();
         const measurement = {
@@ -484,15 +593,20 @@ class UIManager {
         const recipe = {
             name: document.getElementById('recipe-name').value,
             servings: parseInt(document.getElementById('recipe-servings').value),
-            ingredients: this.currentRecipeIngredients,
+            ingredients: this.currentRecipeIngredients.map(ing => ({
+                id: ing.id,
+                quantity: parseFloat(ing.quantity).toFixed(2)
+            })),
             nutrition: this.dataManager.calculateRecipeNutrition(this.currentRecipeIngredients),
             date: new Date().toISOString()
         };
+        console.log('Saving recipe:', recipe);
         this.dataManager.saveRecipe(recipe);
         e.target.reset();
         this.currentRecipeIngredients = [];
         this.updateRecipeIngredientsList();
         this.updateRecipesList();
+        this.updateRecipeSelect();
     }
 
     addIngredientToRecipe() {
@@ -501,16 +615,22 @@ class UIManager {
         
         const select = document.createElement('select');
         select.required = true;
+        
+        // Sort ingredients alphabetically by name
+        const sortedIngredients = [...this.dataManager.ingredients].sort((a, b) => 
+            a.name.localeCompare(b.name)
+        );
+        
         select.innerHTML = '<option value="">Select ingredient</option>' +
-            this.dataManager.ingredients.map(ing => 
+            sortedIngredients.map(ing => 
                 `<option value="${ing.id}" data-unit="${ing.servingUnit}">${ing.name} (${ing.servingUnit})</option>`
             ).join('');
         
         const quantityInput = document.createElement('input');
         quantityInput.type = 'number';
         quantityInput.required = true;
-        quantityInput.min = '0.1';
-        quantityInput.step = '0.1';
+        quantityInput.min = '0.01';
+        quantityInput.step = '0.01';
         quantityInput.placeholder = 'Amount';
         
         const unitSpan = document.createElement('span');
@@ -544,31 +664,49 @@ class UIManager {
     updateRecipeNutrition() {
         const servings = parseInt(document.getElementById('recipe-servings').value) || 1;
         const ingredients = Array.from(document.querySelectorAll('.recipe-ingredient')).map(el => ({
-            id: parseInt(el.querySelector('select').value),
+            id: el.querySelector('select').value,
             quantity: parseFloat(el.querySelector('input').value) || 0
         })).filter(ing => ing.id && ing.quantity > 0);
         
         this.currentRecipeIngredients = ingredients;
         
-        const nutrition = this.dataManager.calculateRecipeNutrition(ingredients, servings);
+        const nutrition = this.dataManager.calculateRecipeNutrition(ingredients);
+        
+        // Divide by servings to get per serving values
+        const perServing = {
+            calories: Math.round(nutrition.calories / servings),
+            protein: Math.round((nutrition.protein / servings) * 10) / 10,
+            carbs: Math.round((nutrition.carbs / servings) * 10) / 10,
+            fat: Math.round((nutrition.fat / servings) * 10) / 10,
+            sugar: Math.round((nutrition.sugar / servings) * 10) / 10,
+            fiber: Math.round((nutrition.fiber / servings) * 10) / 10
+        };
         
         document.getElementById('recipe-nutrition-summary').innerHTML = `
             <div class="nutrition-grid">
                 <div class="nutrition-item">
-                    <div class="value">${nutrition.calories}</div>
+                    <div class="value">${perServing.calories}</div>
                     <div class="label">Calories</div>
                 </div>
                 <div class="nutrition-item">
-                    <div class="value">${nutrition.protein}g</div>
+                    <div class="value">${perServing.protein}g</div>
                     <div class="label">Protein</div>
                 </div>
                 <div class="nutrition-item">
-                    <div class="value">${nutrition.carbs}g</div>
+                    <div class="value">${perServing.carbs}g</div>
                     <div class="label">Carbs</div>
                 </div>
                 <div class="nutrition-item">
-                    <div class="value">${nutrition.fat}g</div>
+                    <div class="value">${perServing.fat}g</div>
                     <div class="label">Fat</div>
+                </div>
+                <div class="nutrition-item">
+                    <div class="value">${perServing.sugar}g</div>
+                    <div class="label">Sugar</div>
+                </div>
+                <div class="nutrition-item">
+                    <div class="value">${perServing.fiber}g</div>
+                    <div class="label">Fiber</div>
                 </div>
             </div>
         `;
@@ -616,78 +754,82 @@ class UIManager {
         const recipesList = document.getElementById('recipes-list');
         const recipes = this.dataManager.recipes.sort((a, b) => new Date(b.date) - new Date(a.date));
         
-        recipesList.innerHTML = recipes.map(recipe => `
-            <div class="recipe-item">
-                <h4>${recipe.name}</h4>
-                <div class="servings">Servings: ${recipe.servings}</div>
-                <div class="ingredients">
-                    <h5>Ingredients:</h5>
-                    <ul>
-                        ${recipe.ingredients.map(ing => {
-                            const ingredient = this.dataManager.ingredients.find(i => i.id === ing.id);
-                            return ingredient ? 
-                                `<li>${ingredient.name} - ${ing.amount} ${ingredient.servingUnit}</li>` : '';
-                        }).join('')}
-                    </ul>
-                </div>
-                <div class="nutrition">
-                    <h5>Nutrition per serving:</h5>
-                    <div class="nutrition-grid">
-                        <div class="nutrition-item">
-                            <div class="value">${recipe.nutrition.calories}</div>
-                            <div class="label">Calories</div>
-                        </div>
-                        <div class="nutrition-item">
-                            <div class="value">${recipe.nutrition.protein}g</div>
-                            <div class="label">Protein</div>
-                        </div>
-                        <div class="nutrition-item">
-                            <div class="value">${recipe.nutrition.carbs}g</div>
-                            <div class="label">Carbs</div>
-                        </div>
-                        <div class="nutrition-item">
-                            <div class="value">${recipe.nutrition.fat}g</div>
-                            <div class="label">Fat</div>
+        console.log('Updating recipes list with:', recipes);
+        
+        recipesList.innerHTML = recipes.map(recipe => {
+            console.log('Rendering recipe:', recipe);
+            return `
+                <div class="recipe-item">
+                    <h4>${recipe.name}</h4>
+                    <div class="servings">Servings: ${recipe.servings}</div>
+                    <div class="ingredients">
+                        <h5>Ingredients:</h5>
+                        <ul>
+                            ${recipe.ingredients.map(ing => {
+                                const ingredient = this.dataManager.ingredients.find(i => i.id === ing.id);
+                                console.log('Recipe ingredient:', ing);
+                                console.log('Found ingredient:', ingredient);
+                                if (!ingredient) {
+                                    return `<li>Unknown ingredient (ID: ${ing.id})</li>`;
+                                }
+                                const quantity = parseFloat(ing.quantity).toFixed(2);
+                                return `<li>${ingredient.name} - ${quantity} ${ingredient.servingUnit}</li>`;
+                            }).join('')}
+                        </ul>
+                    </div>
+                    <div class="nutrition">
+                        <h5>Nutrition per serving:</h5>
+                        <div class="nutrition-grid">
+                            <div class="nutrition-item">
+                                <div class="value">${recipe.nutrition.calories || 0}</div>
+                                <div class="label">Calories</div>
+                            </div>
+                            <div class="nutrition-item">
+                                <div class="value">${recipe.nutrition.protein || 0}g</div>
+                                <div class="label">Protein</div>
+                            </div>
+                            <div class="nutrition-item">
+                                <div class="value">${recipe.nutrition.carbs || 0}g</div>
+                                <div class="label">Carbs</div>
+                            </div>
+                            <div class="nutrition-item">
+                                <div class="value">${recipe.nutrition.fat || 0}g</div>
+                                <div class="label">Fat</div>
+                            </div>
+                            <div class="nutrition-item">
+                                <div class="value">${recipe.nutrition.sugar || 0}g</div>
+                                <div class="label">Sugar</div>
+                            </div>
+                            <div class="nutrition-item">
+                                <div class="value">${recipe.nutrition.fiber || 0}g</div>
+                                <div class="label">Fiber</div>
+                            </div>
                         </div>
                     </div>
+                    <button class="delete-btn" onclick="uiManager.dataManager.deleteItem('recipes', '${recipe.id}')">×</button>
                 </div>
-                <button class="delete-btn" onclick="uiManager.dataManager.deleteItem('recipes', '${recipe.id}')">×</button>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
-    handleIngredientSearch(e) {
-        const query = e.target.value;
-        const ingredients = this.dataManager.searchIngredients(query);
-        const ingredientsList = document.getElementById('ingredients-list');
+    handleIngredientSubmit(e) {
+        e.preventDefault();
+        const formData = {
+            name: document.getElementById('ingredient-name').value,
+            servingSize: document.getElementById('serving-size').value,
+            servingUnit: document.getElementById('serving-unit').value,
+            calories: document.getElementById('ingredient-calories').value,
+            protein: document.getElementById('protein').value,
+            carbs: document.getElementById('carbs').value,
+            fat: document.getElementById('fat').value,
+            sugar: document.getElementById('sugar').value,
+            fiber: document.getElementById('fiber').value
+        };
         
-        ingredientsList.innerHTML = ingredients.map(ingredient => `
-            <div class="ingredient-item">
-                <div class="name">${ingredient.name}</div>
-                <div class="serving">Serving: ${ingredient.servingSize}g</div>
-                <div class="macros">
-                    <div class="macro">
-                        <div class="value">${ingredient.calories}</div>
-                        <div class="label">Calories</div>
-                    </div>
-                    <div class="macro">
-                        <div class="value">${ingredient.protein}g</div>
-                        <div class="label">Protein</div>
-                    </div>
-                    <div class="macro">
-                        <div class="value">${ingredient.carbs}g</div>
-                        <div class="label">Carbs</div>
-                    </div>
-                    <div class="macro">
-                        <div class="value">${ingredient.fat}g</div>
-                        <div class="label">Fat</div>
-                    </div>
-                </div>
-                <button class="delete-btn" onclick="uiManager.dataManager.deleteItem('ingredients', ${ingredient.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `).join('');
+        console.log('Submitting ingredient form with data:', formData);
+        this.dataManager.saveIngredient(formData);
+        e.target.reset();
+        this.updateIngredientsList();
     }
 
     updateRecipeIngredientsList() {

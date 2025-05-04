@@ -14,6 +14,8 @@
             <button class="nav-btn active" data-section="dashboard">Dashboard</button>
             <button class="nav-btn" data-section="workouts">Workouts</button>
             <button class="nav-btn" data-section="nutrition">Nutrition</button>
+            <button class="nav-btn" data-section="ingredients">Ingredients</button>
+            <button class="nav-btn" data-section="recipes">Recipes</button>
             <button class="nav-btn" data-section="measurements">Measurements</button>
         </div>
     </nav>
@@ -107,9 +109,9 @@
                 <h3>Add Meal</h3>
                 <form id="nutrition-form">
                     <div class="form-group">
-                        <label for="meal-type">Meal Type</label>
+                        <label for="meal-type">Meal</label>
                         <select id="meal-type" required>
-                            <option value="">Select type</option>
+                            <option value="">Select a meal</option>
                             <option value="breakfast">Breakfast</option>
                             <option value="lunch">Lunch</option>
                             <option value="dinner">Dinner</option>
@@ -117,18 +119,30 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="recipe-select">Recipe (Optional)</label>
+                        <select id="recipe-select" class="form-control">
+                            <option value="">Select a recipe</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="calories">Calories</label>
-                        <input type="number" id="calories" required min="0">
+                        <input type="number" id="calories" min="0" step="1" required>
                     </div>
                     <div class="form-group">
                         <label for="meal-notes">Notes</label>
-                        <textarea id="meal-notes"></textarea>
+                        <textarea id="meal-notes" placeholder="Add any additional notes about your meal"></textarea>
                     </div>
-                    <button type="submit" class="btn">Save Meal</button>
+                    <button type="submit">Add Meal</button>
                 </form>
             </div>
             <div class="nutrition-history">
                 <h3>Today's Meals</h3>
+                <div class="daily-macros">
+                    <h4>Daily Macros</h4>
+                    <div id="daily-macros-summary" class="macros-summary">
+                        <!-- Macros will be displayed here -->
+                    </div>
+                </div>
                 <div id="meal-list"></div>
             </div>
         </section>
@@ -196,7 +210,7 @@
                     <div class="form-group">
                         <label for="serving-size">Serving Size</label>
                         <div class="serving-size-input">
-                            <input type="number" id="serving-size" required min="0.1" step="0.1">
+                            <input type="number" id="serving-size" required min="0.01" step="0.01">
                             <select id="serving-unit" required>
                                 <option value="g">grams (g)</option>
                                 <option value="kg">kilograms (kg)</option>
@@ -215,27 +229,27 @@
                     </div>
                     <div class="form-group">
                         <label for="ingredient-calories">Calories per serving</label>
-                        <input type="number" id="ingredient-calories" required min="0" step="0.1">
+                        <input type="number" id="ingredient-calories" required min="0" step="0.01">
                     </div>
                     <div class="form-group">
                         <label for="protein">Protein (g)</label>
-                        <input type="number" id="protein" required min="0" step="0.1">
+                        <input type="number" id="protein" required min="0" step="0.01">
                     </div>
                     <div class="form-group">
                         <label for="carbs">Carbohydrates (g)</label>
-                        <input type="number" id="carbs" required min="0" step="0.1">
+                        <input type="number" id="carbs" required min="0" step="0.01">
                     </div>
                     <div class="form-group">
                         <label for="fat">Fat (g)</label>
-                        <input type="number" id="fat" required min="0" step="0.1">
+                        <input type="number" id="fat" required min="0" step="0.01">
                     </div>
                     <div class="form-group">
                         <label for="sugar">Sugar (g)</label>
-                        <input type="number" id="sugar" required min="0" step="0.1">
+                        <input type="number" id="sugar" required min="0" step="0.01">
                     </div>
                     <div class="form-group">
                         <label for="fiber">Fiber (g)</label>
-                        <input type="number" id="fiber" required min="0" step="0.1">
+                        <input type="number" id="fiber" required min="0" step="0.01">
                     </div>
                     <button type="submit" class="btn">Save Ingredient</button>
                 </form>

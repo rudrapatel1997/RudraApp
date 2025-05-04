@@ -1,36 +1,49 @@
-# Personal Health & Fitness Tracker
+# Health & Fitness Tracker
 
-A simple, lightweight web application to track your health and fitness metrics. Built with vanilla HTML, CSS, and JavaScript.
+A web application for tracking workouts, nutrition, measurements, and ingredients. Built with HTML, CSS, and JavaScript, using Firebase for data storage.
 
 ## Features
 
-- Track daily workouts
-- Monitor weight and measurements
-- Record nutrition intake
-- View progress over time
-- Responsive design for all devices
+- Dashboard with daily summary
+- Workout tracking
+- Nutrition logging
+- Body measurements tracking
+- Ingredients database
+- Recipe management
+- CSV import/export functionality
 
 ## Setup
 
-1. Clone this repository
-2. Open `index.html` in your browser
-3. Start tracking your health and fitness journey!
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/health-tracker.git
+cd health-tracker
+```
+
+2. Open `index.html` in your web browser.
+
+## Usage
+
+1. **Dashboard**: View your daily summary including calories burned, workouts, and current weight.
+2. **Workouts**: Add and track your workouts with type, duration, and notes.
+3. **Nutrition**: Log your meals and track calories.
+4. **Measurements**: Record and track body measurements.
+5. **Ingredients**: Manage your ingredients database with nutritional information.
+6. **Recipes**: Create and manage recipes using your ingredients.
+
+## CSV Import/Export
+
+- **Import**: Click the "Import CSV" button to import ingredients from a CSV file.
+- **Export**: Click the "Export CSV" button to export your ingredients to a CSV file.
 
 ## Technologies Used
 
 - HTML5
 - CSS3
 - JavaScript (ES6+)
-- Local Storage for data persistence
-
-## Hosting
-
-This project is hosted on GitHub Pages. Visit the live site at: [Your GitHub Pages URL]
-
-## Contributing
-
-This is a personal project, but feel free to fork and modify for your own use.
+- Firebase (Firestore)
+- Font Awesome Icons
 
 ## License
 
-MIT License 
+This project is licensed under the MIT License - see the LICENSE file for details. 

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Ingredients</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Import Ingredients</h1>
+    <p>Click the button below to import ingredients from the CSV file into your database.</p>
+    <button id="importButton">Import Ingredients</button>
+    <div id="status"></div>
+
+    <script type="module" src="import-ingredients.js"></script>
+    <script>
+        document.getElementById('importButton').addEventListener('click', () => {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = 'Importing ingredients...';
+            statusDiv.className = '';
+            
+            // The import will start automatically when the module loads
+        });
+    </script>
+</body>
+</html> 

@@ -21,7 +21,12 @@
     <main class="container">
         <!-- Dashboard Section -->
         <section id="dashboard" class="section active">
-            <h2>Dashboard</h2>
+            <div class="section-header">
+                <h2>Dashboard</h2>
+                <button class="refresh-btn" data-section="dashboard">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
             <div class="dashboard-grid">
                 <div class="card">
                     <h3>Today's Summary</h3>
@@ -46,6 +51,8 @@
                         <button id="add-workout" class="btn">Add Workout</button>
                         <button id="add-measurement" class="btn">Add Measurement</button>
                         <button id="add-nutrition" class="btn">Add Nutrition</button>
+                        <button id="add-ingredient" class="btn">Add Ingredient</button>
+                        <button id="add-recipe" class="btn">Add Recipe</button>
                     </div>
                 </div>
             </div>
@@ -53,7 +60,12 @@
 
         <!-- Workouts Section -->
         <section id="workouts" class="section">
-            <h2>Workouts</h2>
+            <div class="section-header">
+                <h2>Workouts</h2>
+                <button class="refresh-btn" data-section="workouts">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
             <div class="workout-form">
                 <h3>Add New Workout</h3>
                 <form id="workout-form">
@@ -85,7 +97,12 @@
 
         <!-- Nutrition Section -->
         <section id="nutrition" class="section">
-            <h2>Nutrition</h2>
+            <div class="section-header">
+                <h2>Nutrition</h2>
+                <button class="refresh-btn" data-section="nutrition">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
             <div class="nutrition-form">
                 <h3>Add Meal</h3>
                 <form id="nutrition-form">
@@ -118,7 +135,12 @@
 
         <!-- Measurements Section -->
         <section id="measurements" class="section">
-            <h2>Measurements</h2>
+            <div class="section-header">
+                <h2>Measurements</h2>
+                <button class="refresh-btn" data-section="measurements">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
             <div class="measurements-form">
                 <h3>Add Measurement</h3>
                 <form id="measurements-form">
@@ -145,8 +167,142 @@
                 <div id="measurements-list"></div>
             </div>
         </section>
+
+        <!-- Ingredients Section -->
+        <section id="ingredients" class="section">
+            <div class="section-header">
+                <h2>Ingredients</h2>
+                <div class="section-actions">
+                    <button id="refresh-ingredients" class="refresh-button">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button id="export-ingredients" class="action-button">
+                        <i class="fas fa-file-export"></i> Export CSV
+                    </button>
+                    <label for="import-ingredients" class="action-button">
+                        <i class="fas fa-file-import"></i> Import CSV
+                        <input type="file" id="import-ingredients" accept=".csv" style="display: none;">
+                    </label>
+                </div>
+            </div>
+            <div id="import-status" class="status-message"></div>
+            <div class="ingredients-form">
+                <h3>Add New Ingredient</h3>
+                <form id="ingredients-form">
+                    <div class="form-group">
+                        <label for="ingredient-name">Ingredient Name</label>
+                        <input type="text" id="ingredient-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="serving-size">Serving Size</label>
+                        <div class="serving-size-input">
+                            <input type="number" id="serving-size" required min="0.1" step="0.1">
+                            <select id="serving-unit" required>
+                                <option value="g">grams (g)</option>
+                                <option value="kg">kilograms (kg)</option>
+                                <option value="ml">milliliters (ml)</option>
+                                <option value="l">liters (l)</option>
+                                <option value="cup">cups</option>
+                                <option value="tbsp">tablespoons (tbsp)</option>
+                                <option value="tsp">teaspoons (tsp)</option>
+                                <option value="oz">ounces (oz)</option>
+                                <option value="lb">pounds (lb)</option>
+                                <option value="piece">piece(s)</option>
+                                <option value="slice">slice(s)</option>
+                                <option value="scoop">scoop(s)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ingredient-calories">Calories per serving</label>
+                        <input type="number" id="ingredient-calories" required min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="protein">Protein (g)</label>
+                        <input type="number" id="protein" required min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="carbs">Carbohydrates (g)</label>
+                        <input type="number" id="carbs" required min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="fat">Fat (g)</label>
+                        <input type="number" id="fat" required min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="sugar">Sugar (g)</label>
+                        <input type="number" id="sugar" required min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="fiber">Fiber (g)</label>
+                        <input type="number" id="fiber" required min="0" step="0.1">
+                    </div>
+                    <button type="submit" class="btn">Save Ingredient</button>
+                </form>
+            </div>
+            <div class="ingredients-list">
+                <h3>Ingredients Database</h3>
+                <div class="table-container">
+                    <table id="ingredients-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Serving Size</th>
+                                <th>Calories</th>
+                                <th>Protein (g)</th>
+                                <th>Carbs (g)</th>
+                                <th>Fat (g)</th>
+                                <th>Sugar (g)</th>
+                                <th>Fiber (g)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ingredients-list">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recipes Section -->
+        <section id="recipes" class="section">
+            <div class="section-header">
+                <h2>Recipes</h2>
+                <button class="refresh-btn" data-section="recipes">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="recipes-form">
+                <h3>Create New Recipe</h3>
+                <form id="recipes-form">
+                    <div class="form-group">
+                        <label for="recipe-name">Recipe Name</label>
+                        <input type="text" id="recipe-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipe-servings">Number of Servings</label>
+                        <input type="number" id="recipe-servings" required min="1">
+                    </div>
+                    <div class="ingredients-container">
+                        <h4>Ingredients</h4>
+                        <div id="recipe-ingredients-list"></div>
+                        <button type="button" id="add-ingredient-to-recipe" class="btn">Add Ingredient</button>
+                    </div>
+                    <div class="recipe-summary">
+                        <h4>Nutrition Summary (per serving)</h4>
+                        <div id="recipe-nutrition-summary"></div>
+                    </div>
+                    <button type="submit" class="btn">Save Recipe</button>
+                </form>
+            </div>
+            <div class="recipes-list">
+                <h3>Saved Recipes</h3>
+                <div id="recipes-list"></div>
+            </div>
+        </section>
     </main>
 
-    <script src="script.js"></script>
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html> 

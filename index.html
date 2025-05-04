@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health & Fitness Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Health Tracker</div>
+        <div class="nav-links">
+            <button class="nav-btn active" data-section="dashboard">Dashboard</button>
+            <button class="nav-btn" data-section="workouts">Workouts</button>
+            <button class="nav-btn" data-section="nutrition">Nutrition</button>
+            <button class="nav-btn" data-section="measurements">Measurements</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <h2>Dashboard</h2>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Today's Summary</h3>
+                    <div class="summary-stats">
+                        <div class="stat">
+                            <i class="fas fa-fire"></i>
+                            <span>Calories Burned: <span id="calories-burned">0</span></span>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Workouts: <span id="workouts-count">0</span></span>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-weight"></i>
+                            <span>Weight: <span id="current-weight">--</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Quick Add</h3>
+                    <div class="quick-add">
+                        <button id="add-workout" class="btn">Add Workout</button>
+                        <button id="add-measurement" class="btn">Add Measurement</button>
+                        <button id="add-nutrition" class="btn">Add Nutrition</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Workouts Section -->
+        <section id="workouts" class="section">
+            <h2>Workouts</h2>
+            <div class="workout-form">
+                <h3>Add New Workout</h3>
+                <form id="workout-form">
+                    <div class="form-group">
+                        <label for="workout-type">Workout Type</label>
+                        <select id="workout-type" required>
+                            <option value="">Select type</option>
+                            <option value="cardio">Cardio</option>
+                            <option value="strength">Strength</option>
+                            <option value="flexibility">Flexibility</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="workout-duration">Duration (minutes)</label>
+                        <input type="number" id="workout-duration" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="workout-notes">Notes</label>
+                        <textarea id="workout-notes"></textarea>
+                    </div>
+                    <button type="submit" class="btn">Save Workout</button>
+                </form>
+            </div>
+            <div class="workout-history">
+                <h3>Workout History</h3>
+                <div id="workout-list"></div>
+            </div>
+        </section>
+
+        <!-- Nutrition Section -->
+        <section id="nutrition" class="section">
+            <h2>Nutrition</h2>
+            <div class="nutrition-form">
+                <h3>Add Meal</h3>
+                <form id="nutrition-form">
+                    <div class="form-group">
+                        <label for="meal-type">Meal Type</label>
+                        <select id="meal-type" required>
+                            <option value="">Select type</option>
+                            <option value="breakfast">Breakfast</option>
+                            <option value="lunch">Lunch</option>
+                            <option value="dinner">Dinner</option>
+                            <option value="snack">Snack</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="calories">Calories</label>
+                        <input type="number" id="calories" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="meal-notes">Notes</label>
+                        <textarea id="meal-notes"></textarea>
+                    </div>
+                    <button type="submit" class="btn">Save Meal</button>
+                </form>
+            </div>
+            <div class="nutrition-history">
+                <h3>Today's Meals</h3>
+                <div id="meal-list"></div>
+            </div>
+        </section>
+
+        <!-- Measurements Section -->
+        <section id="measurements" class="section">
+            <h2>Measurements</h2>
+            <div class="measurements-form">
+                <h3>Add Measurement</h3>
+                <form id="measurements-form">
+                    <div class="form-group">
+                        <label for="measurement-type">Measurement Type</label>
+                        <select id="measurement-type" required>
+                            <option value="">Select type</option>
+                            <option value="weight">Weight</option>
+                            <option value="waist">Waist</option>
+                            <option value="chest">Chest</option>
+                            <option value="arms">Arms</option>
+                            <option value="thighs">Thighs</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="measurement-value">Value</label>
+                        <input type="number" id="measurement-value" required step="0.1">
+                    </div>
+                    <button type="submit" class="btn">Save Measurement</button>
+                </form>
+            </div>
+            <div class="measurements-history">
+                <h3>Measurement History</h3>
+                <div id="measurements-list"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html> 

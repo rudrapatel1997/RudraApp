@@ -8,7 +8,8 @@ import {
     query, 
     where, 
     orderBy,
-    serverTimestamp 
+    serverTimestamp,
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Data Management
@@ -98,7 +99,11 @@ class DataManager {
                 ...meal,
                 date: new Date().toISOString()
             });
-            this.updateDashboard();
+            // Update the UI
+            if (uiManager) {
+                uiManager.updateMealList();
+                uiManager.updateDashboard();
+            }
         } catch (error) {
             console.error("Error saving meal:", error);
         }
@@ -165,6 +170,28 @@ class DataManager {
         }
     }
 
+    async updateRecipe(recipeId, recipe) {
+        try {
+            const recipeRef = doc(db, "recipes", recipeId);
+            await updateDoc(recipeRef, {
+                ...recipe,
+                date: serverTimestamp()
+            });
+
+            // Update local recipes array
+            const index = this.recipes.findIndex(r => r.id === recipeId);
+            if (index !== -1) {
+                this.recipes[index] = {
+                    ...recipe,
+                    id: recipeId,
+                    date: new Date().toISOString()
+                };
+            }
+        } catch (error) {
+            console.error("Error updating recipe:", error);
+        }
+    }
+
     async deleteItem(type, id) {
         try {
             await deleteDoc(doc(db, type, id));
@@ -180,7 +207,13 @@ class DataManager {
 
     getTodayItems(type) {
         const today = new Date().toISOString().split('T')[0];
-        return this[type].filter(item => item.date.startsWith(today));
+        return this[type].filter(item => {
+            // Ensure date is a string and handle both ISO strings and Firestore timestamps
+            const itemDate = typeof item.date === 'string' ? item.date : 
+                           item.date?.toDate ? item.date.toDate().toISOString() : 
+                           new Date().toISOString();
+            return itemDate.startsWith(today);
+        });
     }
 
     getLatestMeasurement(type) {
@@ -235,6 +268,13 @@ class DataManager {
 
         console.log('Calculated nutrition:', nutrition);
         return nutrition;
+    }
+
+    updateDashboard() {
+        // Update the UI
+        if (uiManager) {
+            uiManager.updateDashboard();
+        }
     }
 }
 
@@ -345,7 +385,7 @@ class UIManager {
             icon.classList.add('fa-spin');
             
             // Refresh data
-            await this.refreshData();
+            await this.dataManager.refreshData();
             
             // Update the specific section
             this.updateSection(sectionId);
@@ -449,7 +489,13 @@ class UIManager {
         
         // Calculate daily macros
         const today = new Date().toISOString().split('T')[0];
-        const todayMeals = meals.filter(meal => meal.date.startsWith(today));
+        const todayMeals = meals.filter(meal => {
+            // Ensure date is a string and handle both ISO strings and Firestore timestamps
+            const mealDate = typeof meal.date === 'string' ? meal.date : 
+                           meal.date?.toDate ? meal.date.toDate().toISOString() : 
+                           new Date().toISOString();
+            return mealDate.startsWith(today);
+        });
         
         let totalProtein = 0;
         let totalCarbs = 0;
@@ -493,20 +539,36 @@ class UIManager {
             `;
         }
         
-        mealList.innerHTML = meals.map(meal => `
-            <div class="list-item">
-                <div>
-                    <strong>${meal.type}</strong>
-                    ${meal.recipeName ? ` - ${meal.recipeName}` : ''}
-                    ${meal.calories ? ` - ${meal.calories} calories` : ''}
-                    ${meal.timestamp ? ` (${meal.timestamp})` : ''}
-                    ${meal.notes ? `<br><small>${meal.notes}</small>` : ''}
+        mealList.innerHTML = meals.map(meal => {
+            // Format the date for display
+            const mealDate = typeof meal.date === 'string' ? meal.date : 
+                           meal.date?.toDate ? meal.date.toDate().toISOString() : 
+                           new Date().toISOString();
+            const displayDate = new Date(mealDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            return `
+                <div class="list-item">
+                    <div>
+                        <strong>${meal.type}</strong>
+                        ${meal.recipeName ? ` - ${meal.recipeName}` : ''}
+                        ${meal.calories ? ` - ${meal.calories} calories` : ''}
+                        ${displayDate ? ` (${displayDate})` : ''}
+                        ${meal.notes ? `<br><small>${meal.notes}</small>` : ''}
+                    </div>
+                    <button class="delete-btn" data-meal-id="${meal.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
-                <button class="delete-btn" onclick="uiManager.dataManager.deleteItem('meals', '${meal.id}')">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+
+        // Add event listeners to delete buttons
+        mealList.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const mealId = e.target.closest('.delete-btn').dataset.mealId;
+                this.dataManager.deleteItem('meals', mealId);
+            });
+        });
     }
 
     updateRecipeSelect() {
@@ -600,13 +662,25 @@ class UIManager {
             nutrition: this.dataManager.calculateRecipeNutrition(this.currentRecipeIngredients),
             date: new Date().toISOString()
         };
-        console.log('Saving recipe:', recipe);
-        this.dataManager.saveRecipe(recipe);
+
+        if (this.currentRecipeId) {
+            // Update existing recipe
+            this.dataManager.updateRecipe(this.currentRecipeId, recipe);
+            this.currentRecipeId = null;
+        } else {
+            // Create new recipe
+            this.dataManager.saveRecipe(recipe);
+        }
+
         e.target.reset();
         this.currentRecipeIngredients = [];
         this.updateRecipeIngredientsList();
         this.updateRecipesList();
         this.updateRecipeSelect();
+
+        // Reset submit button text
+        const submitButton = document.querySelector('#recipes-form button[type="submit"]');
+        submitButton.textContent = 'Save Recipe';
     }
 
     addIngredientToRecipe() {
@@ -759,8 +833,18 @@ class UIManager {
         recipesList.innerHTML = recipes.map(recipe => {
             console.log('Rendering recipe:', recipe);
             return `
-                <div class="recipe-item">
-                    <h4>${recipe.name}</h4>
+                <div class="recipe-item" data-id="${recipe.id}">
+                    <div class="recipe-header">
+                        <h4>${recipe.name}</h4>
+                        <div class="recipe-actions">
+                            <button class="edit-btn" data-recipe-id="${recipe.id}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="delete-btn" data-recipe-id="${recipe.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="servings">Servings: ${recipe.servings}</div>
                     <div class="ingredients">
                         <h5>Ingredients:</h5>
@@ -806,10 +890,107 @@ class UIManager {
                             </div>
                         </div>
                     </div>
-                    <button class="delete-btn" onclick="uiManager.dataManager.deleteItem('recipes', '${recipe.id}')">×</button>
                 </div>
             `;
         }).join('');
+
+        // Add event listeners to edit and delete buttons
+        recipesList.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const recipeId = e.target.closest('.edit-btn').dataset.recipeId;
+                this.editRecipe(recipeId);
+            });
+        });
+
+        recipesList.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const recipeId = e.target.closest('.delete-btn').dataset.recipeId;
+                this.dataManager.deleteItem('recipes', recipeId);
+            });
+        });
+    }
+
+    editRecipe(recipeId) {
+        const recipe = this.dataManager.recipes.find(r => r.id === recipeId);
+        if (!recipe) return;
+
+        console.log('Editing recipe:', recipe);
+
+        // Set form values
+        document.getElementById('recipe-name').value = recipe.name;
+        document.getElementById('recipe-servings').value = recipe.servings;
+
+        // Clear existing ingredients
+        const ingredientsList = document.getElementById('recipe-ingredients-list');
+        ingredientsList.innerHTML = '';
+
+        // Add ingredients to the form
+        recipe.ingredients.forEach(ing => {
+            const ingredient = this.dataManager.ingredients.find(i => i.id === ing.id);
+            if (ingredient) {
+                const container = document.createElement('div');
+                container.className = 'recipe-ingredient';
+                
+                const select = document.createElement('select');
+                select.required = true;
+                
+                // Sort ingredients alphabetically by name
+                const sortedIngredients = [...this.dataManager.ingredients].sort((a, b) => 
+                    a.name.localeCompare(b.name)
+                );
+                
+                select.innerHTML = '<option value="">Select ingredient</option>' +
+                    sortedIngredients.map(i => 
+                        `<option value="${i.id}" data-unit="${i.servingUnit}" ${i.id === ing.id ? 'selected' : ''}>${i.name} (${i.servingUnit})</option>`
+                    ).join('');
+                
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.required = true;
+                quantityInput.min = '0.01';
+                quantityInput.step = '0.01';
+                quantityInput.value = ing.quantity;
+                quantityInput.placeholder = 'Amount';
+                
+                const unitSpan = document.createElement('span');
+                unitSpan.className = 'ingredient-unit';
+                unitSpan.textContent = ingredient.servingUnit;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.onclick = () => {
+                    container.remove();
+                    this.updateRecipeNutrition();
+                };
+                
+                select.addEventListener('change', (e) => {
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    const unit = selectedOption.dataset.unit;
+                    unitSpan.textContent = unit;
+                    this.updateRecipeNutrition();
+                });
+                
+                quantityInput.addEventListener('input', () => this.updateRecipeNutrition());
+                
+                container.appendChild(select);
+                container.appendChild(quantityInput);
+                container.appendChild(unitSpan);
+                container.appendChild(deleteBtn);
+                
+                ingredientsList.appendChild(container);
+            }
+        });
+
+        // Update nutrition summary
+        this.updateRecipeNutrition();
+
+        // Store the recipe ID for updating
+        this.currentRecipeId = recipeId;
+
+        // Change form submit button text
+        const submitButton = document.querySelector('#recipes-form button[type="submit"]');
+        submitButton.textContent = 'Update Recipe';
     }
 
     handleIngredientSubmit(e) {
